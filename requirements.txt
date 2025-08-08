@@ -1,0 +1,12 @@
+
+Flask
+Flask-CORS
+transformers
+pdfminer.six
+python-docx
+torch
+requests
+python-dotenv
+
+
+
