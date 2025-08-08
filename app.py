@@ -5,7 +5,6 @@ import traceback
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
-# Make sure all your local Python files are in the same directory as app.py
 from query_parser import parse_query
 from document_loader import load_documents
 from information_retriever import retrieve_information
@@ -15,15 +14,10 @@ from response_formatter import format_response
 app = Flask(__name__)
 CORS(app)
 
-# Global variables to store documents and the LLM pipeline.
 documents = []
 loading_error = None
 
 def load_all_resources():
-    """
-    Function to load all resources (documents and model) in a controlled way.
-    This will be called only once when the server starts.
-    """
     global documents, loading_error
     try:
         print("Loading documents...")
@@ -47,7 +41,6 @@ def index():
 def evaluate_query():
     global documents
     if loading_error:
-        # If there was a loading error at startup, return it to the UI
         return jsonify({"error": f"Server failed to initialize resources. Details: {loading_error}"}), 500
 
     if not documents:
@@ -63,9 +56,11 @@ def evaluate_query():
 
     try:
         parsed_query = parse_query(user_query)
-        # The retrieve_information function now makes the API call directly.
         retrieved_info = retrieve_information(parsed_query['procedure'], documents)
-        decision, amount, justification = evaluate_decision(retrieved_info)
+        
+        # Pass the entire parsed_query dictionary to the evaluation function
+        decision, amount, justification = evaluate_decision(retrieved_info, parsed_query)
+        
         response = format_response(decision, amount, justification)
         
         return jsonify(json.loads(response)), 200
@@ -77,7 +72,6 @@ def evaluate_query():
         return jsonify({"error": "An internal server error occurred. Please check the server logs for details."}), 500
 
 if __name__ == '__main__':
-    # Load resources before starting the server
     load_all_resources()
 
     docs_dir_path = os.path.join(os.getcwd(), 'LLM_Document_Processing_System', 'documents')
@@ -86,5 +80,4 @@ if __name__ == '__main__':
         print(f"Created directory '{docs_dir_path}'. Please place your policy documents inside.")
     
     app.run(debug=True, port=5000)
-
 
